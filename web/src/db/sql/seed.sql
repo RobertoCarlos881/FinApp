@@ -1,6 +1,0 @@
--- =============================================================================
---  La base de datos arranca VACÍA.
---  No se siembra ningún usuario ni dato: todo (personas, categorías, cuentas,
---  trabajos, presupuestos, ingresos y gastos) se carga desde la propia app.
---  Este archivo se conserva solo como referencia; el cliente ya NO lo ejecuta.
--- =============================================================================
