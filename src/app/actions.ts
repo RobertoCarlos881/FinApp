@@ -9,10 +9,12 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 const periodOf = (isoDate: string) => `${isoDate.slice(0, 7)}-01`;
 
 /**
- * Mes contable (de pago) de un gasto. Para tarjeta de CRÉDITO, el gasto cae en
- * el mes en que se PAGA, según la fecha de corte vigente: si la compra fue antes
- * o en el día de corte, se paga el mes siguiente; si fue después, el subsiguiente.
- * Débito/efectivo (o sin tarjeta) = el mes de la compra.
+ * Mes contable de un gasto. Para tarjeta de CRÉDITO, cae en el mes del estado
+ * de cuenta que lo incluye (según la fecha de corte vigente):
+ *   - compra en o antes del día de corte -> cierra ESTE mes -> mes de la compra.
+ *   - compra después del corte -> entra al siguiente estado -> mes de compra + 1.
+ * Ej: corte 11, compra el 12 de abril -> cierra el 11 de mayo -> MAYO.
+ * Débito/efectivo (o sin tarjeta / sin corte) = el mes de la compra.
  */
 async function billingPeriod(
   db: Awaited<ReturnType<typeof getDb>>,
@@ -33,10 +35,32 @@ async function billingPeriod(
   const cutoff = row.hist != null ? Number(row.hist) : row.cutoff_day != null ? Number(row.cutoff_day) : null;
   if (cutoff == null) return periodOf(date);
   const [y, m, d] = date.split("-").map(Number);
-  let month = m + (d <= cutoff ? 1 : 2);
+  let month = m + (d > cutoff ? 1 : 0);
   let year = y;
   while (month > 12) { month -= 12; year += 1; }
   return `${year}-${String(month).padStart(2, "0")}-01`;
+}
+
+/** Recalcula el mes de TODOS los gastos pagados con tarjeta de crédito del hogar. */
+export async function recalcCardPeriods() {
+  const hid = await getHouseholdId();
+  const db = await getDb();
+  const txs = await db.query<{ id: number; date: string; account_id: number }>(
+    `SELECT t.id, to_char(t.date,'YYYY-MM-DD') AS date, t.account_id
+       FROM transaction t JOIN account a ON a.id = t.account_id
+      WHERE t.household_id = $1 AND a.kind = 'credit_card'`,
+    [hid],
+  );
+  for (const t of txs.rows) {
+    const period = await billingPeriod(db, hid, Number(t.account_id), String(t.date));
+    await db.query(`UPDATE transaction SET period = $2 WHERE id = $1 AND household_id = $3`, [
+      t.id,
+      period,
+      hid,
+    ]);
+  }
+  revalidatePath("/");
+  revalidatePath("/gastos");
 }
 
 /**

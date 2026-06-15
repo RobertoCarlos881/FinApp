@@ -23,6 +23,7 @@ import {
   deleteFixedExpense,
   setAccountCutoff,
   deleteAccountCutoff,
+  recalcCardPeriods,
 } from "@/app/actions";
 import NavBar from "@/components/NavBar";
 import { requireUser } from "@/lib/auth";
@@ -35,6 +36,8 @@ const inp =
   "rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900";
 const btn =
   "rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700";
+const btnGhost =
+  "rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-300";
 
 const MODES: [string, string][] = [
   ["cap", "Tope (se descuenta)"],
@@ -146,6 +149,12 @@ export default async function ConfigPage() {
               </li>
             ))}
           </ul>
+          <form action={recalcCardPeriods} className="mt-4">
+            <button className={btnGhost}>Recalcular meses de gastos con tarjeta de crédito</button>
+            <span className="ml-2 text-xs text-zinc-400">
+              (reacomoda los gastos ya capturados según el corte de cada tarjeta)
+            </span>
+          </form>
         </div>
       </Section>
 
