@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Option } from "@/lib/queries";
+import type { Option, CategoryOption } from "@/lib/queries";
 
 type Account = Option & { person: string };
 
@@ -27,7 +27,7 @@ export default function ExpenseForm({
   submitLabel,
   resetOnSubmit = false,
 }: {
-  categories: Option[];
+  categories: CategoryOption[];
   accounts: Account[];
   people: Option[];
   splitMode?: "individual" | "shared";
@@ -40,6 +40,10 @@ export default function ExpenseForm({
 }) {
   const first = people[0];
   const [owner, setOwner] = useState<string>(initial?.ownerMode ?? (first ? String(first.id) : ""));
+  const [catId, setCatId] = useState<number>(initial?.categoryId ?? categories[0]?.id ?? 0);
+  const catMode = categories.find((c) => c.id === catId)?.budgetMode;
+  // Solo en categorías "Planeado" y al AGREGAR (no al editar) se ofrece recurrente.
+  const canRecur = !initial && catMode === "planned";
 
   const splitOf = (pid: number) =>
     initial?.splits.find((s) => s.personId === pid)?.amount ?? "";
@@ -72,7 +76,13 @@ export default function ExpenseForm({
           defaultValue={initial?.amount ?? ""} required className={inputCls} />
       </Field>
       <Field label="Categoría">
-        <select name="categoryId" defaultValue={initial?.categoryId} required className={inputCls}>
+        <select
+          name="categoryId"
+          value={catId || ""}
+          onChange={(e) => setCatId(Number(e.target.value))}
+          required
+          className={inputCls}
+        >
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
@@ -89,6 +99,18 @@ export default function ExpenseForm({
       <Field label="Descripción" full>
         <input type="text" name="description" defaultValue={initial?.description ?? ""} placeholder="Ej. Despensa" className={inputCls} />
       </Field>
+
+      {canRecur && (
+        <label className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm sm:col-span-2 dark:border-blue-900 dark:bg-blue-950">
+          <input type="checkbox" name="recurring" defaultChecked className="mt-0.5" />
+          <span>
+            <b>Se repite cada mes</b> (cargo recurrente)
+            <span className="block text-xs text-zinc-500">
+              Lo registras una vez y reaparece solo cada mes. Podrás ajustar el monto de un mes o darlo de baja en Configuración.
+            </span>
+          </span>
+        </label>
+      )}
 
       {/* Dueño */}
       <div className="sm:col-span-2">

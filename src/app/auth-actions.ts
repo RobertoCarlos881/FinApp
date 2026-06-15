@@ -55,6 +55,19 @@ export async function registerAction(formData: FormData) {
       [hn, newInviteCode(), splitMode],
     );
     householdId = h.rows[0].id;
+    // Categorías por defecto para empezar (editables/borrables).
+    await db.query(
+      `INSERT INTO category (household_id, name, budget_mode, sort_order) VALUES
+        ($1,'Gastos fijos','planned',1),
+        ($1,'Gasolina','cap',2),
+        ($1,'Comida','cap',3),
+        ($1,'Entretenimiento','planned',4),
+        ($1,'Salud','planned',5),
+        ($1,'Gastos hormiga','tracking',6),
+        ($1,'Meses sin intereses','planned',7)
+       ON CONFLICT (household_id, name) DO NOTHING`,
+      [householdId],
+    );
   }
 
   // Crear la persona (miembro) con el nombre del registro.

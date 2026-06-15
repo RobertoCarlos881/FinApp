@@ -168,10 +168,28 @@ export async function addExpense(formData: FormData) {
   const amount = round2(Number(formData.get("amount")));
   const description = String(formData.get("description") || "").trim() || null;
   const owner = String(formData.get("owner") || "");
+  const recurring = formData.get("recurring") === "on";
   if (!date || !categoryId || !(amount > 0) || !owner) {
     throw new Error("Faltan datos del gasto (fecha, categoría, monto o dueño).");
   }
   const db = await getDb();
+
+  // Si es recurrente, se crea como gasto recurrente (fixed_expense) que reaparece
+  // solo cada mes desde este mes, en vez de un movimiento de una sola vez.
+  if (recurring) {
+    const ownerId = owner === "split" ? null : Number(owner);
+    await db.query(
+      `INSERT INTO fixed_expense (household_id, category_id, name, amount, default_owner_id, start_period)
+       SELECT $1, $2, $3, $4, $5, $6
+        WHERE EXISTS (SELECT 1 FROM category WHERE id = $2 AND household_id = $1)`,
+      [hid, categoryId, description || "Recurrente", amount, ownerId, periodOf(date)],
+    );
+    revalidatePath("/");
+    revalidatePath("/gastos");
+    revalidatePath("/config");
+    return;
+  }
+
   const splits = await computeSplits(owner, amount, formData);
   const period = await billingPeriod(db, hid, accountId, date);
 

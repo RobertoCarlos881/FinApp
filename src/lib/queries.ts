@@ -234,14 +234,19 @@ export async function getPeople(period: string): Promise<PersonRow[]> {
   return rows.map(({ person, income, spent, available }) => ({ person, income, spent, available }));
 }
 
-export async function getCategoryOptions(): Promise<Option[]> {
+export type CategoryOption = { id: number; name: string; budgetMode: string };
+export async function getCategoryOptions(): Promise<CategoryOption[]> {
   const db = await getDb();
   const hid = await getHouseholdId();
   const r = await db.query<Record<string, unknown>>(
-    `SELECT id, name FROM category WHERE active AND household_id = $1 ORDER BY sort_order, name`,
+    `SELECT id, name, budget_mode FROM category WHERE active AND household_id = $1 ORDER BY sort_order, name`,
     [hid],
   );
-  return r.rows.map((x) => ({ id: Number(x.id), name: String(x.name) }));
+  return r.rows.map((x) => ({
+    id: Number(x.id),
+    name: String(x.name),
+    budgetMode: String(x.budget_mode),
+  }));
 }
 
 export async function getAccountOptions(): Promise<(Option & { person: string })[]> {
