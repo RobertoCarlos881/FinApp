@@ -9,7 +9,7 @@ import {
   getRecurringForMonth,
 } from "@/lib/queries";
 import { money, monthLabel, currentPeriod } from "@/lib/format";
-import { addExpense, deleteExpense, setFixedExpenseMonth } from "@/app/actions";
+import { addExpense, deleteExpense, setFixedExpenseMonth, makeRecurring } from "@/app/actions";
 import ExpenseForm from "./ExpenseForm";
 import NavBar from "@/components/NavBar";
 import MonthNav from "@/components/MonthNav";
@@ -40,6 +40,8 @@ export default async function GastosPage({
   ]);
 
   const defaultDate = `${period.slice(0, 7)}-15`;
+  const personName = (id: number | null) =>
+    id == null ? "dividido" : people.find((pp) => pp.id === id)?.name ?? "";
 
   // Agrupar por categoría (vista del mes): recurrentes + movimientos juntos.
   type Group = { category: string; total: number; recs: typeof recurring; txs: typeof expenses };
@@ -140,8 +142,7 @@ export default async function GastosPage({
                       <td className="px-4 py-2.5">
                         <span className="font-medium">{it.name}</span>
                         <span className="text-xs text-blue-500">
-                          {" "}· {it.kind === "msi" ? "meses sin intereses" : "recurrente"}
-                          {it.ownerId == null ? " · dividido" : ""}
+                          {" "}· {it.kind === "msi" ? "meses sin intereses" : "recurrente"} · {personName(it.ownerId)}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right font-medium tabular-nums">{money(it.amount)}</td>
@@ -171,7 +172,11 @@ export default async function GastosPage({
                       </td>
                       <td className="px-4 py-2.5 text-right font-medium tabular-nums">{money(e.amount)}</td>
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                        <Link href={`/gastos/${e.id}/editar`} className="text-xs text-blue-600 transition hover:text-blue-700">Editar</Link>
+                        <form action={makeRecurring} className="inline">
+                          <input type="hidden" name="id" value={e.id} />
+                          <button type="submit" className="text-xs text-emerald-600 transition hover:text-emerald-700" title="Convertir en gasto recurrente cada mes">↻ Recurrente</button>
+                        </form>
+                        <Link href={`/gastos/${e.id}/editar`} className="ml-3 text-xs text-blue-600 transition hover:text-blue-700">Editar</Link>
                         <form action={deleteExpense} className="ml-3 inline">
                           <input type="hidden" name="id" value={e.id} />
                           <button type="submit" className="text-xs text-zinc-400 transition hover:text-rose-600" title="Borrar">Borrar</button>

@@ -73,7 +73,7 @@ export default async function ConfigPage() {
   const cutoffs = await getAccountCutoffs();
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-8">
+    <main className="mx-auto w-full max-w-5xl px-5 py-8">
       <NavBar active="config" user={user} />
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Configuración</h1>
 
@@ -88,7 +88,7 @@ export default async function ConfigPage() {
           </select>
           <button className={btn}>Agregar</button>
         </form>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {categories.map((c) => (
             <CategoryRow key={c.id} c={c} action={updateCategory} />
           ))}
@@ -113,7 +113,7 @@ export default async function ConfigPage() {
           <input name="cutoffDay" type="number" min="1" max="31" placeholder="Corte" className={`${inp} w-20`} />
           <button className={btn}>Agregar</button>
         </form>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {accounts.map((a) => (
             <AccountRow key={a.id} a={a} people={people} action={updateAccount} />
           ))}
@@ -180,7 +180,7 @@ export default async function ConfigPage() {
           </select>
           <button className={btn}>Agregar</button>
         </form>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {sources.map((s) => (
             <SourceRow key={s.id} s={s} people={people} action={updateIncomeSource} />
           ))}
@@ -213,7 +213,7 @@ export default async function ConfigPage() {
         {catOptions.length === 0 && (
           <p className="text-sm text-zinc-500">Primero crea categorías arriba.</p>
         )}
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {recurring.map((f) => (
             <FixedExpenseRow key={f.id} f={f} categories={catOptions} people={people} action={updateFixedExpense} onDelete={deleteFixedExpense} />
           ))}
@@ -235,7 +235,7 @@ export default async function ConfigPage() {
           </select>
           <button className={btn}>Agregar</button>
         </form>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           {installments.map((m) => (
             <InstallmentRow key={m.id} m={m} people={people} action={updateInstallment} onDelete={deleteInstallment} />
           ))}

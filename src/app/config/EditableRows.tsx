@@ -54,7 +54,7 @@ export function CategoryRow({ c, action }: { c: CategoryAdmin; action: Act }) {
       </div>
     );
   return (
-    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={rowCls}>
+    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={`${rowCls} col-span-full`}>
       <input type="hidden" name="id" value={c.id} />
       <input name="name" defaultValue={c.name} className={`${inp} flex-1 min-w-32`} />
       <select name="budgetMode" defaultValue={c.budgetMode} className={inp}>
@@ -88,7 +88,7 @@ export function AccountRow({ a, people, action }: { a: AccountAdmin; people: Opt
       </div>
     );
   return (
-    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={rowCls}>
+    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={`${rowCls} col-span-full`}>
       <input type="hidden" name="id" value={a.id} />
       <select name="personId" defaultValue={a.personId} className={inp}>
         {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -126,7 +126,7 @@ export function SourceRow({ s, people, action }: { s: SourceAdmin; people: Optio
       </div>
     );
   return (
-    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={rowCls}>
+    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={`${rowCls} col-span-full`}>
       <input type="hidden" name="id" value={s.id} />
       <select name="personId" defaultValue={s.personId} className={inp}>
         {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -185,7 +185,7 @@ export function FixedExpenseRow({
       </div>
     );
   return (
-    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={rowCls}>
+    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={`${rowCls} col-span-full`}>
       <input type="hidden" name="id" value={f.id} />
       <input name="name" defaultValue={f.name} className={`${inp} flex-1 min-w-28`} />
       <select name="categoryId" defaultValue={f.categoryId} className={inp}>
@@ -242,7 +242,7 @@ export function InstallmentRow({
       </div>
     );
   return (
-    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={rowCls}>
+    <form action={async (fd) => { await action(fd); setEditing(false); router.refresh(); }} className={`${rowCls} col-span-full`}>
       <input type="hidden" name="id" value={m.id} />
       <input name="name" defaultValue={m.name} className={`${inp} flex-1 min-w-28`} />
       <input name="monthly" type="number" step="0.01" min="0" defaultValue={m.monthly} className={`${inp} w-24`} />

@@ -560,6 +560,37 @@ export async function deleteFixedExpense(formData: FormData) {
   revalidatePath("/");
 }
 
+/** Convierte un movimiento de una sola vez en un gasto recurrente (desde su mes). */
+export async function makeRecurring(formData: FormData) {
+  const hid = await getHouseholdId();
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  const db = await getDb();
+  const r = await db.query<{ category_id: number; amount: string; description: string | null; period: string }>(
+    `SELECT category_id, amount, description, to_char(period,'YYYY-MM-DD') AS period
+       FROM transaction WHERE id = $1 AND household_id = $2`,
+    [id, hid],
+  );
+  if (r.rows.length === 0) return;
+  const t = r.rows[0];
+  const sp = await db.query<{ person_id: number }>(
+    `SELECT person_id FROM transaction_split WHERE transaction_id = $1`,
+    [id],
+  );
+  // 1 dueño -> esa persona; varios -> dividido (null).
+  const ownerId = sp.rows.length === 1 ? Number(sp.rows[0].person_id) : null;
+  await db.query(
+    `INSERT INTO fixed_expense (household_id, category_id, name, amount, default_owner_id, start_period)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [hid, t.category_id, t.description || "Recurrente", round2(Number(t.amount)), ownerId, periodOf(t.period)],
+  );
+  // Quita el movimiento original (ya lo cubre el recurrente desde este mes).
+  await db.query(`DELETE FROM transaction WHERE id = $1 AND household_id = $2`, [id, hid]);
+  revalidatePath("/");
+  revalidatePath("/gastos");
+  revalidatePath("/config");
+}
+
 /** Ajusta el monto de un recurrente SOLO para un mes (override). */
 export async function setFixedExpenseMonth(formData: FormData) {
   const hid = await getHouseholdId();
